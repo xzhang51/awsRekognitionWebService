@@ -132,6 +132,31 @@ public class AtoZImageRekognitionService {
         return matchedFaces;
     }
 
+    public Map<String, Float> detectLabels(InputStream inputStream) throws Exception {
+        ByteBuffer imageBytes = ByteBuffer.wrap(IOUtils.toByteArray(inputStream));
+        Image image = new Image().withBytes(imageBytes);
+
+        DetectLabelsRequest request = new DetectLabelsRequest()
+                .withImage(image)
+                .withMaxLabels(100)
+                .withMinConfidence(60.0F);
+
+        DetectLabelsResult result = client.detectLabels(request);
+
+        Map<String, Float> matchedLables = new HashMap<>();
+        for (Label label : result.getLabels()) {
+            matchedLables.put(label.getName(), label.getConfidence());
+        }
+
+        return matchedLables;
+    }
+
+    public Map<String, Float> detectLablesWithLocalFile(String fileLocaton) throws Exception {
+        InputStream inputStream = new FileInputStream(fileLocaton);
+
+        return detectLabels(inputStream);
+    }
+
     public void deleteFaces(List<String> faceIds) {
         DeleteFacesRequest deleteFacesRequest = new DeleteFacesRequest()
                 .withCollectionId(imageCollection)

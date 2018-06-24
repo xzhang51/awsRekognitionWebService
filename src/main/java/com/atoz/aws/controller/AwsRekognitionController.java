@@ -80,4 +80,28 @@ public class AwsRekognitionController {
             return new ResponseEntity<Map<String, Float>>(new HashMap<>(), HttpStatus.BAD_REQUEST);
         }
     }
+
+    @RequestMapping(value="/image/detectLables", method=RequestMethod.POST)
+    public ResponseEntity<Map<String, Float>> detectImageLabels(@RequestParam("file") MultipartFile imageFile) {
+        try {
+            Map<String, Float> matchedLabels = imageService.detectLabels(imageFile.getInputStream());
+
+            return new ResponseEntity<Map<String, Float>>(matchedLabels, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error to detect label {}", e.getMessage());
+
+            return new ResponseEntity<Map<String, Float>>(new HashMap<>(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value="/image/local/detectLabels", method=RequestMethod.GET)
+    public ResponseEntity<Map<String, Float>> detectImageLebels(@RequestParam("file") String fileLocation) {
+        try {
+            Map<String, Float> labels = imageService.detectLablesWithLocalFile(fileLocation);
+            return new ResponseEntity<Map<String, Float>>(labels, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+            return new ResponseEntity<Map<String, Float>>(new HashMap<String, Float>(), HttpStatus.BAD_REQUEST);
+        }
+    }
 }
