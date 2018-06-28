@@ -124,7 +124,9 @@ public class AtoZImageRekognitionService {
         for (FaceMatch match : searchResult.getFaceMatches()) {
             log.info("Number of faces matched: " + searchResult.getFaceMatches().size());
             String faceId = match.getFace().getFaceId();
+            log.info("faceId=" + faceId);
             Map<String, AttributeValue> map = dynamoService.getItem(faceId);
+            log.info("Attribute map size=" + map.size());
             String fullName = map.get(dynamoService.getAttrFullName()).s();
             matchedFaces.put(fullName, match.getFace().getConfidence());
         }

@@ -29,6 +29,7 @@ public class AwsRekognitionController {
     @Autowired
     private AtoZImageRekognitionService imageService;
 
+    @CrossOrigin
     @RequestMapping(value="/image/s3upload", method=RequestMethod.POST)
     public ResponseEntity<String> s3UploadFile(@RequestParam("name") String name,
                                @RequestParam("file") MultipartFile uploadfile) {
@@ -51,6 +52,7 @@ public class AwsRekognitionController {
         return new ResponseEntity<String>(content, status);
     }
 
+    @CrossOrigin
     @RequestMapping(value="/image/index", method=RequestMethod.POST)
     public ResponseEntity<String> indexImage(@RequestParam("name") String name,
                              @RequestParam("file") MultipartFile uploadfile) {
@@ -70,6 +72,7 @@ public class AwsRekognitionController {
         return new ResponseEntity<String>(responseContent, status);
     }
 
+    @CrossOrigin
     @RequestMapping(value="/image/match", method=RequestMethod.POST)
     public ResponseEntity<Map<String, Float>> matchImage(@RequestParam("file") MultipartFile uploadfile) {
         try {
@@ -81,7 +84,8 @@ public class AwsRekognitionController {
         }
     }
 
-    @RequestMapping(value="/image/detectLables", method=RequestMethod.POST)
+    @CrossOrigin
+    @RequestMapping(value="/image/detectLabels", method=RequestMethod.POST)
     public ResponseEntity<Map<String, Float>> detectImageLabels(@RequestParam("file") MultipartFile imageFile) {
         try {
             Map<String, Float> matchedLabels = imageService.detectLabels(imageFile.getInputStream());

@@ -73,7 +73,7 @@ public class DynamoDbAccessService {
 
     public Map<String, AttributeValue> getItem(String key) throws DynamoDBException {
         HashMap<String,AttributeValue> key_to_get = new HashMap<>();
-
+        log.info("Search DynamoDB with key={}, and tableName={}", keyName, tableName);
         key_to_get.put(keyName, AttributeValue.builder()
                 .s(key).build());
 
@@ -83,7 +83,10 @@ public class DynamoDbAccessService {
                     .build();
 
         try {
-            return dbClient.getItem(request).item();
+            log.info("calling DynamoDb");
+            GetItemResponse response = dbClient.getItem(request);
+            log.info("return from DynamoDb call with item size={}", response.item().size());
+            return response.item();
         } catch (DynamoDBException e) {
             log.error("Error to get item from table {}: {}", tableName, e.getErrorMessage());
             throw e;
