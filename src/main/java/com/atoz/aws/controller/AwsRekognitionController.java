@@ -40,8 +40,8 @@ public class AwsRekognitionController {
 
 
         try {
-            s3Service.uploadInputStreram(uploadfile.getOriginalFilename(), uploadfile.getInputStream(), metaData);
-            content = uploadfile.getOriginalFilename() + " uploaded successfully!";
+            s3Service.uploadInputStreram(name, uploadfile.getInputStream(), metaData);
+            content = name + " is uploaded successfully!";
             log.info(content);
         } catch (IOException ioe) {
             content = uploadfile.getOriginalFilename() + " upload failed.";
@@ -85,6 +85,30 @@ public class AwsRekognitionController {
     }
 
     @CrossOrigin
+    @RequestMapping(value="/image/match-image", method=RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> matchImageWithImageResponse(@RequestParam("file") MultipartFile uploadfile) {
+        Map<String, Object> results = new HashMap<>();
+        try {
+            Map<String, Float> matchedNames = imageService.matchImage(uploadfile.getInputStream());
+            if (matchedNames.size() > 0) {
+                for (String key : matchedNames.keySet()) {
+                    byte[] bArray = s3Service.downLoadFileToByteArray(key);
+                    results.put("image", bArray);
+                    results.put("sid", key);
+                    results.put("confidence", matchedNames.get(key));
+                    if (bArray != null && bArray.length > 10000) {
+                        break;
+                    }
+                }
+            }
+            return new ResponseEntity<Map<String, Object>>(results, HttpStatus.OK);
+        } catch (Exception ioe) {
+            log.error("Error to match image: {}", ioe.getMessage());
+            return new ResponseEntity<Map<String, Object>>(new HashMap<>(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @CrossOrigin
     @RequestMapping(value="/image/detectLabels", method=RequestMethod.POST)
     public ResponseEntity<Map<String, Float>> detectImageLabels(@RequestParam("file") MultipartFile imageFile) {
         try {
@@ -98,6 +122,7 @@ public class AwsRekognitionController {
         }
     }
 
+    @CrossOrigin
     @RequestMapping(value="/image/local/detectLabels", method=RequestMethod.GET)
     public ResponseEntity<Map<String, Float>> detectImageLebels(@RequestParam("file") String fileLocation) {
         try {

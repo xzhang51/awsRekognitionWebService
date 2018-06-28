@@ -12,9 +12,7 @@ import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +33,12 @@ public class S3AccessService {
         s3 = S3Client.create();
     }
 
+    /**
+     * Local file upload.
+     * @param key
+     * @param filePath
+     * @param metaData
+     */
     public void uploadFile(String key, String filePath, Map<String, String> metaData) {
 
         File file = new File(filePath);
@@ -51,6 +55,14 @@ public class S3AccessService {
         }
     }
 
+    /**
+     * Web service file upload
+     * @param key
+     * @param inputStream
+     * @param metaData
+     * @throws IOException
+     * @throws AmazonServiceException
+     */
     public void uploadInputStreram(String key, InputStream inputStream, Map<String, String> metaData)
             throws IOException, AmazonServiceException {
 
@@ -75,6 +87,11 @@ public class S3AccessService {
         }
     }
 
+    /**
+     * Download file from S3 to local file system.
+     * @param key
+     * @param destFilePath
+     */
     public void downLoadFile(String key, String destFilePath) {
         String keyWithFolder = buildKeyWithFolder(key);
         GetObjectRequest request = GetObjectRequest.builder()
@@ -85,6 +102,25 @@ public class S3AccessService {
         log.info("Download file destination: {}", filePath);
         s3.getObject(request, StreamingResponseHandler.toFile(Paths.get(filePath)));
     }
+
+    /**
+     * Download to a output stream
+     * @param key
+     */
+    public byte[] downLoadFileToByteArray(String key) {
+        String keyWithFolder = buildKeyWithFolder(key);
+        GetObjectRequest request = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(keyWithFolder).build();
+
+        log.info("Downloading file");
+        S3Object s3Object;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        s3Object = s3.getObject(request, StreamingResponseHandler.toOutputStream(outputStream));
+
+        return outputStream.toByteArray();
+    }
+
 
     public void deleteFile(String key) {
         DeleteObjectRequest request = DeleteObjectRequest.builder().bucket(bucketName).key(buildKeyWithFolder(key)).build();
