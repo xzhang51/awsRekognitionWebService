@@ -93,10 +93,11 @@ public class AwsRekognitionController {
             if (matchedNames.size() > 0) {
                 for (String key : matchedNames.keySet()) {
                     byte[] bArray = s3Service.downLoadFileToByteArray(key);
-                    results.put("image", bArray);
                     results.put("sid", key);
                     results.put("confidence", matchedNames.get(key));
+
                     if (bArray != null && bArray.length > 10000) {
+                        results.put("image", bArray);
                         break;
                     }
                 }

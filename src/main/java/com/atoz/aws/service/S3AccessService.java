@@ -108,17 +108,22 @@ public class S3AccessService {
      * @param key
      */
     public byte[] downLoadFileToByteArray(String key) {
+
         String keyWithFolder = buildKeyWithFolder(key);
         GetObjectRequest request = GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(keyWithFolder).build();
 
-        log.info("Downloading file");
-        S3Object s3Object;
+        log.info("Downloading file for key = {}.", keyWithFolder);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        s3Object = s3.getObject(request, StreamingResponseHandler.toOutputStream(outputStream));
 
-        return outputStream.toByteArray();
+        if (isObjectExists(key)) {
+            s3.getObject(request, StreamingResponseHandler.toOutputStream(outputStream));
+            return outputStream.toByteArray();
+        } else {
+            log.warn("Image not found");
+            return null;
+        }
     }
 
 
