@@ -8,6 +8,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,7 +22,7 @@ public class S3AccessServiceTest {
     @Autowired
     private S3AccessService service;
 
-    private String imageFile = "Xifeng2.jpg.2018-06-18-212024";
+    private String imageFile = "Austin1.jpg";
 
     @Test
     public void testFileUpload() throws Exception {
@@ -31,16 +32,19 @@ public class S3AccessServiceTest {
 
         service.uploadFile(imageFile,
                 getImageFilePath(imageFile),
-                getMetaData("fullname", "Austin Zhang"));
+                getMetaData("fullame", "Austin Zhang"));
 
         assert service.isObjectExists(imageFile);
     }
 
     @Test
     public void testDownLoad() throws Exception {
-        String filePath = getDownloadFileNameWithTimestamp(imageFile);
-        if (service.isObjectExists(imageFile)) {
-            service.downLoadFile(imageFile, filePath);
+        String fileKey = imageFile;
+        String filePath = getDownloadFileNameWithTimestamp(fileKey);
+        if (service.isObjectExists(fileKey)) {
+            byte[] bArray = service.downLoadFileToByteArray(fileKey);
+            FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+            fileOutputStream.write(bArray);
         }
 
         File file = new File(filePath);

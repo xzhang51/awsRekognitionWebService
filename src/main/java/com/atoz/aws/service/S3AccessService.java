@@ -40,7 +40,6 @@ public class S3AccessService {
      * @param metaData
      */
     public void uploadFile(String key, String filePath, Map<String, String> metaData) {
-
         File file = new File(filePath);
 
         try {

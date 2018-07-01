@@ -12,6 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,9 +94,10 @@ public class AwsRekognitionController {
         Map<String, Object> results = new HashMap<>();
         try {
             Map<String, Float> matchedNames = imageService.matchImage(uploadfile.getInputStream());
+            byte[] bArray = null;
             if (matchedNames.size() > 0) {
                 for (String key : matchedNames.keySet()) {
-                    byte[] bArray = s3Service.downLoadFileToByteArray(key);
+                    bArray = s3Service.downLoadFileToByteArray(key);
                     results.put("sid", key);
                     results.put("confidence", matchedNames.get(key));
 
@@ -100,6 +105,10 @@ public class AwsRekognitionController {
                         results.put("image", bArray);
                         break;
                     }
+                }
+
+                if (!results.containsKey("image")) {
+                    results.put("image", buildNotFoundImage());
                 }
             }
             return new ResponseEntity<Map<String, Object>>(results, HttpStatus.OK);
@@ -133,5 +142,23 @@ public class AwsRekognitionController {
             log.error("Error: {}", e.getMessage());
             return new ResponseEntity<Map<String, Float>>(new HashMap<String, Float>(), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    private byte[] buildNotFoundImage() {
+        BufferedImage image = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
+        Graphics g = image.getGraphics();
+        g.drawString("Original Image Not Found!", 10, 20);
+        byte[] imageInByte = null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write( image, "jpg", baos );
+            baos.flush();
+            imageInByte = baos.toByteArray();
+            baos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return imageInByte;
     }
 }

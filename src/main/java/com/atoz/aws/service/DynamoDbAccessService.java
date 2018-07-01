@@ -16,9 +16,7 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -47,13 +45,10 @@ public class DynamoDbAccessService {
     }
 
     public void putItem(String keyValue, Map<String, AttributeValue> extraAttributes) throws Exception {
-
         HashMap<String, AttributeValue> item_values = new HashMap<>();
-
         item_values.put(keyName, AttributeValue.builder().s(keyValue).build());
 
         item_values.putAll(extraAttributes);
-
         PutItemRequest request = PutItemRequest.builder()
                 .tableName(tableName)
                 .item(item_values)
@@ -63,7 +58,6 @@ public class DynamoDbAccessService {
             dbClient.putItem(request);
         } catch (ResourceNotFoundException rnfe) {
             log.error("Error put item into table {}: {}", tableName, rnfe.getMessage());
-            log.error("Be sure that it exists and that you've typed its name correctly!");
             throw rnfe;
         } catch (DynamoDBException dbe) {
             log.error("Error to put item into table {}: {}", tableName, dbe.getMessage());
@@ -85,11 +79,30 @@ public class DynamoDbAccessService {
         try {
             log.info("calling DynamoDb");
             GetItemResponse response = dbClient.getItem(request);
-            log.info("return from DynamoDb call with item size={}", response.item().size());
+            if (response.item() == null) {
+                log.info("Item not found {}", key);
+            } else {
+                log.info("return from DynamoDb call with item size={}", response.item().size());
+            }
             return response.item();
         } catch (DynamoDBException e) {
             log.error("Error to get item from table {}: {}", tableName, e.getErrorMessage());
             throw e;
+        }
+    }
+
+    public void deleteItem(String key) {
+        HashMap<String,AttributeValue> keyMap = new HashMap<>();
+        keyMap.put(keyName, AttributeValue.builder().s(key).build());
+        DeleteItemRequest request = DeleteItemRequest.builder()
+                .key(keyMap)
+                .tableName(tableName)
+                .build();
+
+        try {
+            DeleteItemResponse response = dbClient.deleteItem(request);
+        } catch (DynamoDBException e) {
+            log.error("Error to delete item {} from table {}", key, tableName);
         }
     }
 
@@ -152,9 +165,7 @@ public class DynamoDbAccessService {
         this.keyName = keyName;
     }
 
-    public String getAttrFullName() {
-        return attrFullName;
-    }
+    public String getAttrFullName() { return attrFullName; }
 
     public void setAttrFullName(String attrFullName) {
         this.attrFullName = attrFullName;
